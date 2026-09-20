@@ -1,0 +1,6 @@
+{
+  "name": "ZeroSobra",
+  "description": "Aplicación móvil inteligente para gestión de alimentos, semáforo de caducidad con IA, recetas anti-desperdicio, precios en USD para Ecuador y métricas de impacto ambiental tangible.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

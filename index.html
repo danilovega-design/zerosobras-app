@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ZeroSobra 🥑 - Cocina Sostenible & Anti-Desperdicio</title>
+  <meta name="description" content="Aplicación móvil inteligente para gestión de alimentos, semáforo de caducidad con IA y reducción del desperdicio en el hogar.">
+  <meta property="og:title" content="ZeroSobra 🥑 - Cocina Sostenible & Anti-Desperdicio">
+  <meta property="og:description" content="Gestión inteligente de alimentos con IA y reducción de huella de carbono y desperdicio en Ecuador.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --moss-green: #2E5A44;
+      --moss-dark: #204130;
+      --cream-beige: #F9F8F3;
+      --eucalyptus-soft: #EAF2EC;
+      --soft-coral: #E06D53;
+      --amber-warm: #D97706;
+      --border-warm: #EAE6DC;
+      --input-bg: #F5F5F7;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--cream-beige);
+      color: #1F2937;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-serif-title {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .fade-in {
+      animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="min-h-screen text-slate-800 antialiased flex flex-col bg-[#F9F8F3] pb-[76px] selection:bg-[#2E5A44] selection:text-white">
+
+  <!-- TOP COMPACT APP BAR (64px) CON LOGO, TÍTULO Y FOTO DE PERFIL A LA DERECHA -->
+  <header class="w-full bg-[#F9F8F3]/95 backdrop-blur-md border-b border-[#EAE6DC] sticky top-0 z-30 h-16">
+    <div class="max-w-[430px] md:max-w-5xl mx-auto px-4 h-full flex items-center justify-between">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#2E5A44] text-white flex items-center justify-center text-lg shadow-xs shrink-0">
+          🥑
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-lg font-bold font-serif-title text-[#2E5A44] tracking-tight leading-tight">
+              ZeroSobra
+            </h1>
+            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#2E5A44]/10 text-[#2E5A44] border border-[#2E5A44]/20">
+              EC • USD
+            </span>
+          </div>
+          <p class="text-[10px] text-stone-500 font-medium leading-none mt-0.5">
+            Cocina Sostenible & Anti-Desperdicio
+          </p>
+        </div>
+      </div>
+
+      <!-- Header Right: Quick Savings + Profile Avatar -->
+      <div class="flex items-center gap-2">
+        <div class="bg-white text-[#2E5A44] text-[11px] font-bold px-2.5 py-1 rounded-full border border-[#EAE6DC] shadow-2xs flex items-center gap-1">
+          <span>✨</span>
+          <span id="savedCounterHeader">0 salvados</span>
+        </div>
+
+        <!-- Foto de Perfil Interactiva / Avatar de Usuario -->
+        <button onclick="window.switchTab('profile')" title="Mi Perfil y Huella Ambiental" class="w-9 h-9 rounded-full bg-[#2E5A44] text-white flex items-center justify-center font-bold text-xs hover:opacity-90 active:scale-95 transition-all overflow-hidden shrink-0 shadow-2xs border-2 border-white">
+          <span class="tracking-tight">DV</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER (Celular: max-w-[430px] centrado, Tablet: 2 columnas balanceadas md:max-w-5xl) -->
+  <main class="w-full flex-1 max-w-[430px] md:max-w-5xl mx-auto p-3.5 sm:p-5">
+
+    <!-- TAB 1: 🧊 REFRIGERADORA (Inventario nativo por caducidad) -->
+    <div id="view-fridge" class="tab-view fade-in">
+      
+      <!-- Quick Action Mobile Button -->
+      <div class="mb-3 sm:hidden">
+        <button onclick="window.openFoodModal()" class="w-full bg-[#2E5A44] hover:bg-[#204130] active:scale-[0.98] text-white font-bold text-xs py-3 px-4 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2">
+          <span class="text-sm">✨</span>
+          <span>+ Registrar Alimento con IA</span>
+        </button>
+      </div>
+
+      <!-- Grid responsive: 1 columna en móvil, 2 columnas en tablet -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 items-start">
+
+        <!-- LEFT COLUMN (md:col-span-7): Filtros, Búsqueda y Lista de Alimentos -->
+        <div class="md:col-span-7 space-y-3.5">
+
+          <!-- Buscador & Filtro de Urgencia -->
+          <section class="bg-white p-3 rounded-xl border border-[#EAE6DC] shadow-2xs space-y-2.5">
+            <!-- Search bar -->
+            <div class="relative">
+              <span class="absolute left-3 top-2.5 text-stone-400 text-xs">🔍</span>
+              <input type="text" id="searchInput" oninput="window.handleSearchChange()" placeholder="Buscar en mi refrigeradora (ej. pollo, leche...)" class="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-transparent bg-[#F5F5F7] focus:bg-white focus:border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#2E5A44] transition-all font-medium placeholder:text-stone-400">
+            </div>
+
+            <!-- Segmented Control: Urgencia -->
+            <div class="grid grid-cols-4 gap-1 bg-[#F5F5F7] p-1 rounded-xl text-center text-[11px] font-semibold">
+              <button onclick="window.setUrgencyFilter('all')" id="filterUrgencyAll" class="py-1 rounded-lg bg-white text-[#2E5A44] shadow-2xs font-bold transition-all">Todos</button>
+              <button onclick="window.setUrgencyFilter('urgent')" id="filterUrgencyUrgent" class="py-1 rounded-lg text-[#E06D53] hover:bg-white/60 transition-all">🔴 &lt;2d</button>
+              <button onclick="window.setUrgencyFilter('warning')" id="filterUrgencyWarning" class="py-1 rounded-lg text-amber-700 hover:bg-white/60 transition-all">🟡 2-4d</button>
+              <button onclick="window.setUrgencyFilter('fresh')" id="filterUrgencyFresh" class="py-1 rounded-lg text-[#2E5A44] hover:bg-white/60 transition-all">🟢 &gt;4d</button>
+            </div>
+
+            <!-- 11 Categorías Únicas (Scroll horizontal nativo) -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5 text-[10px]">
+                <span class="font-bold text-stone-400 uppercase tracking-wider">Categoría</span>
+                <span id="activeCategoryLabel" class="font-bold text-[#2E5A44]">Todas</span>
+              </div>
+              <div id="categoryFilterContainer" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                <!-- Chips generados dinámicamente -->
+              </div>
+            </div>
+          </section>
+
+          <!-- Food List Header & Stack -->
+          <section class="space-y-2.5">
+            <div class="flex items-center justify-between px-1">
+              <h2 class="text-sm font-bold text-stone-900 flex items-center gap-1.5 font-serif-title">
+                <span>🧊</span> Alimentos Registrados
+                <span id="filteredCountBadge" class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-stone-200/70 text-stone-700">0</span>
+              </h2>
+              <span class="text-[10px] text-stone-400 font-medium">Ordenado por caducidad</span>
+            </div>
+
+            <!-- Listado Nativo de Tarjetas Compactas -->
+            <div id="foodGrid" class="flex flex-col gap-2">
+              <!-- Renderizado dinámicamente -->
+            </div>
+
+            <!-- Estado Vacío -->
+            <div id="emptyFridgeState" class="hidden bg-white rounded-xl border border-dashed border-stone-300 p-6 text-center space-y-2">
+              <div class="w-10 h-10 rounded-xl bg-[#2E5A44]/10 text-[#2E5A44] flex items-center justify-center text-xl mx-auto">
+                🥗
+              </div>
+              <h3 class="text-xs font-bold font-serif-title text-stone-800">Refrigeradora sin coincidencias</h3>
+              <p class="text-[11px] text-stone-500 max-w-xs mx-auto leading-relaxed">
+                Registra un alimento con IA o ajusta los filtros de búsqueda para visualizarlo.
+              </p>
+              <button onclick="window.openFoodModal()" class="px-3.5 py-1.5 bg-[#2E5A44] text-white rounded-xl text-xs font-bold hover:bg-[#204130] transition-colors inline-flex items-center gap-1 shadow-2xs">
+                <span>+ Registrar Alimento</span>
+              </button>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- RIGHT COLUMN (md:col-span-5): Resumen de Semáforo, Ahorro Ecuador y Consejos -->
+        <div class="md:col-span-5 space-y-3.5">
+
+          <!-- Desktop Register Button -->
+          <div class="hidden sm:block">
+            <button onclick="window.openFoodModal()" class="w-full bg-[#2E5A44] hover:bg-[#204130] active:scale-[0.98] text-white font-bold text-xs py-3 px-4 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2">
+              <span class="text-sm">✨</span>
+              <span>+ Registrar Alimento con IA</span>
+            </button>
+          </div>
+
+          <!-- Semáforo de Control Rápido (2x2 Grid) -->
+          <section class="grid grid-cols-2 gap-2">
+            <!-- Total Nevera -->
+            <div class="bg-white p-3 rounded-xl border border-[#EAE6DC] shadow-2xs flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-sm shrink-0 text-stone-700">
+                ❄️
+              </div>
+              <div class="min-w-0">
+                <span class="text-[9px] font-bold uppercase text-stone-400 block truncate">Total Stock</span>
+                <span id="kpiTotal" class="text-base font-bold font-serif-title text-stone-800 leading-tight">0</span>
+              </div>
+            </div>
+
+            <!-- Urgentes (<2d) -->
+            <div class="bg-white p-3 rounded-xl border border-[#E06D53]/30 shadow-2xs flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-[#E06D53]/10 flex items-center justify-center text-sm shrink-0 text-[#E06D53]">
+                🔴
+              </div>
+              <div class="min-w-0">
+                <span class="text-[9px] font-bold uppercase text-[#E06D53] block truncate">Urgente (&lt;2d)</span>
+                <span id="kpiRed" class="text-base font-bold font-serif-title text-[#E06D53] leading-tight">0</span>
+              </div>
+            </div>
+
+            <!-- Por vencer (2-4d) -->
+            <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-2xs flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-sm shrink-0 text-amber-700">
+                🟡
+              </div>
+              <div class="min-w-0">
+                <span class="text-[9px] font-bold uppercase text-amber-700 block truncate">Por Vencer</span>
+                <span id="kpiYellow" class="text-base font-bold font-serif-title text-amber-700 leading-tight">0</span>
+              </div>
+            </div>
+
+            <!-- Frescos (>4d) -->
+            <div class="bg-white p-3 rounded-xl border border-[#2E5A44]/30 shadow-2xs flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-[#2E5A44]/10 flex items-center justify-center text-sm shrink-0 text-[#2E5A44]">
+                🟢
+              </div>
+              <div class="min-w-0">
+                <span class="text-[9px] font-bold uppercase text-[#2E5A44] block truncate">Fresco (&gt;4d)</span>
+                <span id="kpiGreen" class="text-base font-bold font-serif-title text-[#2E5A44] leading-tight">0</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Tarjeta de Valor Económico en Ecuador (USD) -->
+          <section class="bg-[#EAF2EC] rounded-xl border border-[#2E5A44]/20 p-3.5 shadow-2xs space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase text-[#2E5A44] tracking-wider flex items-center gap-1">
+                <span>🇪🇨</span> Valor de Canasta Familiar
+              </span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-[#2E5A44] border border-[#2E5A44]/20">
+                USD ($)
+              </span>
+            </div>
+            <div class="flex items-baseline justify-between">
+              <div>
+                <span class="text-[10px] text-stone-500 block">Presupuesto en riesgo hoy:</span>
+                <span id="kpiFridgeRiskUSD" class="text-xl font-bold font-serif-title text-[#E06D53]">$0.00</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-stone-500 block">Total preservado:</span>
+                <span id="kpiFridgeSavedUSD" class="text-base font-bold font-serif-title text-[#2E5A44]">$0.00</span>
+              </div>
+            </div>
+            <p class="text-[10px] text-stone-600 leading-tight">
+              Precios referenciales de mercados y supermercados en Ecuador (Quito, Guayaquil, Cuenca).
+            </p>
+          </section>
+
+          <!-- Atajo a Recetas Anti-Desperdicio -->
+          <div class="bg-white rounded-xl border border-[#EAE6DC] p-3.5 shadow-2xs space-y-2.5">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-sm shrink-0">
+                🍳
+              </div>
+              <div>
+                <h3 class="text-xs font-bold font-serif-title text-stone-900 leading-tight">Cero Sobras en la Cocina</h3>
+                <p class="text-[10px] text-stone-500">Aprovecha ingredientes en alerta antes de que caduquen.</p>
+              </div>
+            </div>
+            <button onclick="window.switchTab('recipes'); window.generateAntiWasteRecipe();" class="w-full bg-[#F9F8F3] hover:bg-[#EAE6DC] text-[#2E5A44] font-bold text-[11px] py-2 px-3 rounded-xl border border-[#EAE6DC] transition-all flex items-center justify-center gap-1.5">
+              <span>✨ Generar Receta con mis alimentos</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: 🍳 RECETAS (Cocina Consciente & Anti-Desperdicio) -->
+    <div id="view-recipes" class="tab-view hidden fade-in space-y-4">
+      
+      <!-- Card Superior de Rescate Culinario -->
+      <div class="bg-white rounded-xl border border-[#EAE6DC] p-4 shadow-2xs space-y-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center text-xl shrink-0">
+            🍳
+          </div>
+          <div>
+            <h2 class="text-base font-bold font-serif-title text-[#2E5A44] leading-tight">
+              Recetas de Rescate Inteligente
+            </h2>
+            <p class="text-[11px] text-stone-500">
+              Genera recetas deliciosas aprovechando los alimentos que tienes por vencer.
+            </p>
+          </div>
+        </div>
+
+        <button id="btnGenerateRecipe" onclick="window.generateAntiWasteRecipe()" class="w-full bg-[#2E5A44] hover:bg-[#204130] active:scale-[0.98] text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-2xs transition-all flex items-center justify-center gap-2">
+          <span>✨ Generar Receta con mis ingredientes actuales</span>
+        </button>
+      </div>
+
+      <!-- Estado Inicial del Generador -->
+      <div id="recipeEmptyState" class="bg-white rounded-xl border border-dashed border-stone-300 p-6 text-center space-y-2">
+        <div class="text-2xl">🪄</div>
+        <h3 class="text-xs font-bold font-serif-title text-stone-800">Motor Culinario Listo</h3>
+        <p class="text-[11px] text-stone-500 max-w-sm mx-auto leading-relaxed">
+          Presiona el botón para combinar los ingredientes con menor tiempo de vida y evitar que terminen en la basura.
+        </p>
+      </div>
+
+      <!-- Tarjeta de Receta Generada -->
+      <div id="recipeResultCard" class="hidden bg-white rounded-xl border border-amber-300 p-4 shadow-xs space-y-3 fade-in">
+        <div class="flex items-start justify-between gap-3 border-b border-stone-100 pb-2.5">
+          <div>
+            <span class="text-[10px] font-bold text-[#E06D53] uppercase tracking-wider">Receta Anti-Desperdicio</span>
+            <h3 id="recipeTitle" class="font-bold text-sm text-stone-900 font-serif-title mt-0.5"></h3>
+          </div>
+          <span id="recipeTimeBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 shrink-0">⏱️ 15 min</span>
+        </div>
+
+        <p id="recipeDescription" class="text-xs text-stone-600 leading-relaxed"></p>
+
+        <!-- Ingredientes rescatados -->
+        <div class="bg-[#F9F8F3] rounded-xl p-2.5 border border-[#EAE6DC]">
+          <span class="text-[9px] font-bold text-[#2E5A44] block mb-1.5 uppercase tracking-wider">Ingredientes rescatados de tu refrigeradora:</span>
+          <div id="recipeIngredientsList" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <!-- Pasos de preparación -->
+        <div>
+          <span class="text-[10px] font-bold text-stone-800 block mb-1.5 uppercase tracking-wider">Paso a paso express:</span>
+          <ol id="recipeStepsList" class="text-xs text-stone-600 space-y-1.5 list-decimal list-inside leading-relaxed pl-1"></ol>
+        </div>
+
+        <div class="pt-2.5 flex items-center justify-between border-t border-stone-100 text-[11px] text-stone-500">
+          <span class="flex items-center gap-1 text-[#2E5A44] font-semibold">🌱 Cero desperdicio</span>
+          <button onclick="window.generateAntiWasteRecipe()" class="text-[#2E5A44] font-bold hover:underline flex items-center gap-1">
+            <span>🔄 Probar otra opción</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 3: 🔔 ALERTAS (Centro de Caducidad & Desactivación Automática) -->
+    <div id="view-alerts" class="tab-view hidden fade-in space-y-3.5">
+      
+      <div class="bg-white rounded-xl border border-[#EAE6DC] p-4 shadow-2xs space-y-1">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-[#E06D53]/10 text-[#E06D53] flex items-center justify-center text-lg shrink-0">
+              🔔
+            </div>
+            <div>
+              <h2 class="text-sm font-bold font-serif-title text-stone-900 leading-tight">
+                Alertas Activas de Caducidad
+              </h2>
+              <p class="text-[10px] text-stone-500">
+                Se desactivan automáticamente al consumir o salvar cada alimento.
+              </p>
+            </div>
+          </div>
+          <button onclick="window.dismissAllResolvedAlerts()" class="text-[10px] text-[#2E5A44] font-bold bg-[#EAF2EC] px-2 py-1 rounded-lg border border-[#2E5A44]/20 hover:bg-[#2E5A44]/15 transition-all">
+            Limpiar Alertas
+          </button>
+        </div>
+      </div>
+
+      <!-- Sección Urgente (< 2 días) -->
+      <section class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-[11px] font-bold text-[#E06D53] uppercase tracking-wider flex items-center gap-1">
+            <span>🔴</span> Urgentes (Menos de 2 días)
+          </h3>
+          <span id="alertUrgentCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E06D53]/10 text-[#E06D53]">0</span>
+        </div>
+        <div id="alertsUrgentList" class="flex flex-col gap-2">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Sección Por Vencer (2 a 4 días) -->
+      <section class="space-y-2 pt-1">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-[11px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
+            <span>🟡</span> Próximos a Vencer (2 a 4 días)
+          </h3>
+          <span id="alertWarningCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">0</span>
+        </div>
+        <div id="alertsWarningList" class="flex flex-col gap-2">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Configuración de Notificaciones Locales -->
+      <div class="bg-white rounded-xl border border-[#EAE6DC] p-3.5 shadow-2xs space-y-2 text-xs text-stone-600">
+        <h4 class="font-bold text-stone-800 text-[11px] font-serif-title uppercase tracking-wider">Configuración de Avisos</h4>
+        <div class="flex items-center justify-between py-1 border-b border-stone-100 text-xs">
+          <span>Alertas automáticas al abrir la app</span>
+          <span class="font-bold text-[#2E5A44]">Activado</span>
+        </div>
+        <div class="flex items-center justify-between py-1 text-xs">
+          <span>Desactivar alerta al salvar producto</span>
+          <span class="font-bold text-[#2E5A44]">Automático</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 4: 👤 PERFIL (IMPACTO AMBIENTAL DE ALTO IMPACTO EN ECUADOR & EL PLANETA) -->
+    <div id="view-profile" class="tab-view hidden fade-in space-y-3.5">
+      
+      <!-- Profile Header Compacto -->
+      <div class="bg-white rounded-xl border border-[#EAE6DC] p-4 shadow-2xs flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-[#2E5A44] text-white flex items-center justify-center text-xl font-serif-title shadow-2xs shrink-0">
+          🌱
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm font-bold font-serif-title text-stone-900 leading-tight truncate">
+              Hogar Cero Desperdicio
+            </h2>
+            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-[#2E5A44]/10 text-[#2E5A44] border border-[#2E5A44]/20 shrink-0">
+              Ecuador 🇪🇨
+            </span>
+          </div>
+          <p class="text-[11px] text-stone-500 mt-0.5 truncate">Guardián de la Cocina Sustentable</p>
+          <span class="inline-block text-[10px] font-semibold text-[#2E5A44] mt-0.5">
+            Nivel: Cocina Consciente Farm-to-Table
+          </span>
+        </div>
+      </div>
+
+      <!-- TARJETA DESTACADA: 🌍 TU IMPACTO EN EL PLANETA -->
+      <section class="bg-[#EAF2EC] rounded-xl border border-[#2E5A44]/25 p-4 shadow-2xs space-y-2.5">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-[#2E5A44]/15 text-[#2E5A44] flex items-center justify-center text-base shrink-0">
+            🌍
+          </div>
+          <div>
+            <h3 class="text-xs font-bold text-[#2E5A44] font-serif-title uppercase tracking-wider">
+              Tu Impacto en el Planeta
+            </h3>
+            <p class="text-[10px] text-stone-600">Por qué importa cada porción que no se tira</p>
+          </div>
+        </div>
+        <div class="bg-white/90 p-3 rounded-xl border border-[#2E5A44]/20 shadow-2xs">
+          <p class="text-xs text-stone-800 font-semibold leading-relaxed">
+            🌱 Cada alimento que salvas evita emisiones innecesarias y protege los recursos hídricos y naturales de nuestro entorno.
+          </p>
+        </div>
+        <p class="text-[11px] text-stone-600 leading-relaxed">
+          Al no botar comida evitas que la materia orgánica se descomponga en vertederos anaeróbicos, 
+          impidiendo la emisión directa de <strong>gas metano (CH₄)</strong>, un gas de efecto invernadero 
+          <strong>28 veces más destructivo que el CO₂</strong>.
+        </p>
+      </section>
+
+      <!-- GRID DE EQUIVALENCIAS TANGIBLES DEL MUNDO REAL -->
+      <div class="grid grid-cols-2 gap-2.5">
+        
+        <!-- 1. 💧 Agua Salvada -->
+        <div class="bg-white p-3 rounded-xl border border-[#EAE6DC] shadow-2xs space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase text-sky-700 flex items-center gap-1">
+              <span>💧</span> Agua Salvada
+            </span>
+            <span class="text-[9px] text-stone-400">~1,000L/kg</span>
+          </div>
+          <span id="profileWaterTotal" class="text-lg font-bold font-serif-title text-sky-800 block leading-tight">0 L</span>
+          <p id="profileWaterEquiv" class="text-[10px] text-stone-600 font-medium leading-tight">
+            Equivale a 0 duchas de 5 min
+          </p>
+        </div>
+
+        <!-- 2. 🚗 CO2 Evitado -->
+        <div class="bg-white p-3 rounded-xl border border-[#EAE6DC] shadow-2xs space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase text-[#2E5A44] flex items-center gap-1">
+              <span>🚗</span> CO₂ Evitado
+            </span>
+            <span class="text-[9px] text-stone-400">Emisión neta</span>
+          </div>
+          <span id="profileCo2Total" class="text-lg font-bold font-serif-title text-[#2E5A44] block leading-tight">0.0 kg</span>
+          <p id="profileCo2Equiv" class="text-[10px] text-stone-600 font-medium leading-tight">
+            Equivale a 0 km en auto
+          </p>
+        </div>
+
+        <!-- 3. 💵 Ahorro Económico en Ecuador (USD) -->
+        <div class="bg-white p-3 rounded-xl border border-[#EAE6DC] shadow-2xs space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase text-emerald-700 flex items-center gap-1">
+              <span>💵</span> Ahorro en Ecuador
+            </span>
+            <span class="text-[9px] text-stone-400">Canasta USD</span>
+          </div>
+          <span id="profileMoneyTotal" class="text-lg font-bold font-serif-title text-emerald-800 block leading-tight">$0.00</span>
+          <p class="text-[10px] text-stone-600 font-medium leading-tight">
+            Presupuesto real familiar preservado
+          </p>
+        </div>
+
+        <!-- 4. 🍽️ Comida Rescatada -->
+        <div class="bg-white p-3 rounded-xl border border-[#EAE6DC] shadow-2xs space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase text-amber-800 flex items-center gap-1">
+              <span>🍽️</span> Comida Rescatada
+            </span>
+            <span id="profileFoodKgTotal" class="text-[9px] font-bold text-stone-500">0.0 kg</span>
+          </div>
+          <span id="profileSavedCountTotal" class="text-lg font-bold font-serif-title text-stone-800 block leading-tight">0 alimentos</span>
+          <p id="profileMealsEquiv" class="text-[10px] text-stone-600 font-medium leading-tight">
+            Equivale a 0 platos servidos
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Resumen de Hábitos y Versión Comercial -->
+      <div class="bg-white rounded-xl border border-[#EAE6DC] p-3.5 shadow-2xs space-y-2 text-xs text-stone-500">
+        <div class="flex items-center justify-between">
+          <span>Metodología</span>
+          <span class="font-bold text-[#2E5A44]">Zero-Waste Food Tracking</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Localización de Precios</span>
+          <span class="font-bold text-stone-700">Canasta Básica Ecuador (INEC / Mercado)</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Versión de la App</span>
+          <span class="font-bold text-stone-700">ZeroSobra Commercial 2.6</span>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FIXED BOTTOM NAVIGATION BAR (60px de alto, 4 accesos: 🧊 Refrigeradora, 🍳 Recetas, 🔔 Alertas, 👤 Perfil) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#EAE6DC] shadow-md h-[60px]">
+    <div class="max-w-[430px] md:max-w-xl mx-auto px-2 h-full flex items-center justify-around">
+      
+      <!-- 1. 🧊 Refrigeradora -->
+      <button onclick="window.switchTab('fridge')" id="nav-btn-fridge" class="nav-item flex-1 h-full flex flex-col items-center justify-center gap-0.5 text-[#2E5A44] transition-all relative">
+        <span class="text-lg leading-none">🧊</span>
+        <span class="text-[10px] font-bold leading-none">Refrigeradora</span>
+        <span id="nav-indicator-fridge" class="w-1 h-1 rounded-full bg-[#2E5A44] mt-0.5"></span>
+      </button>
+
+      <!-- 2. 🍳 Recetas -->
+      <button onclick="window.switchTab('recipes')" id="nav-btn-recipes" class="nav-item flex-1 h-full flex flex-col items-center justify-center gap-0.5 text-stone-400 hover:text-[#2E5A44] transition-all relative">
+        <span class="text-lg leading-none">🍳</span>
+        <span class="text-[10px] font-medium leading-none">Recetas</span>
+        <span id="nav-indicator-recipes" class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+      </button>
+
+      <!-- 3. 🔔 Alertas -->
+      <button onclick="window.switchTab('alerts')" id="nav-btn-alerts" class="nav-item flex-1 h-full flex flex-col items-center justify-center gap-0.5 text-stone-400 hover:text-[#2E5A44] transition-all relative">
+        <div class="relative leading-none">
+          <span class="text-lg leading-none">🔔</span>
+          <span id="navAlertBadge" class="hidden absolute -top-1 -right-2 w-3.5 h-3.5 bg-[#E06D53] text-white text-[8px] font-bold rounded-full flex items-center justify-center">0</span>
+        </div>
+        <span class="text-[10px] font-medium leading-none">Alertas</span>
+        <span id="nav-indicator-alerts" class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+      </button>
+
+      <!-- 4. 👤 Perfil -->
+      <button onclick="window.switchTab('profile')" id="nav-btn-profile" class="nav-item flex-1 h-full flex flex-col items-center justify-center gap-0.5 text-stone-400 hover:text-[#2E5A44] transition-all relative">
+        <span class="text-lg leading-none">👤</span>
+        <span class="text-[10px] font-medium leading-none">Perfil</span>
+        <span id="nav-indicator-profile" class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- MODAL: REGISTRAR ALIMENTO CON CANTIDAD + UNIDAD + IA + PRECIOS ECUADOR -->
+  <div id="foodModal" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 fade-in">
+    <div class="w-full max-w-[420px] bg-white rounded-2xl shadow-2xl border border-[#EAE6DC] overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="px-4 py-3 border-b border-stone-100 flex items-center justify-between bg-[#F9F8F3]">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-[#2E5A44] text-white flex items-center justify-center text-xs shadow-2xs">
+            ✨
+          </div>
+          <div>
+            <h3 class="text-xs font-bold font-serif-title text-[#2E5A44] leading-tight">
+              Registrar Alimento
+            </h3>
+            <p class="text-[10px] text-stone-500">Estimación con IA & precios Ecuador</p>
+          </div>
+        </div>
+        <button onclick="window.closeFoodModal()" class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-xs transition-colors">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable form) -->
+      <div class="p-4 overflow-y-auto space-y-3 text-xs">
+
+        <!-- 1. Campo Nombre del Alimento -->
+        <div>
+          <label class="block font-bold text-stone-700 text-[11px] mb-1">
+            Nombre del Alimento:
+          </label>
+          <input type="text" id="modalFoodName" placeholder="Ej. Pechuga de pollo, Manzana, Leche..." class="w-full px-3 py-2 rounded-xl border border-transparent bg-[#F5F5F7] focus:bg-white focus:border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#2E5A44] font-medium transition-all text-xs" onkeydown="if(event.key==='Enter'){event.preventDefault(); window.calculateExpiryWithAI();}">
+        </div>
+
+        <!-- 2. Selector de Conservación: [🧊 Refrigerador] (por defecto) vs [❄️ Congelador] -->
+        <div>
+          <label class="block font-bold text-stone-700 text-[11px] mb-1">
+            Método de Conservación:
+          </label>
+          <div class="grid grid-cols-2 gap-1.5 bg-[#F5F5F7] p-1 rounded-xl">
+            <button type="button" id="btnStorageFridge" onclick="window.setModalStorageType('refrigerador')" class="py-2 px-3 rounded-lg bg-[#2E5A44] text-white font-bold text-xs shadow-2xs flex items-center justify-center gap-1.5 transition-all">
+              <span>🧊</span> Refrigerador
+            </button>
+            <button type="button" id="btnStorageFreezer" onclick="window.setModalStorageType('congelador')" class="py-2 px-3 rounded-lg text-stone-600 hover:text-stone-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all">
+              <span>❄️</span> Congelador
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Selector de Estado del Empaque: [📦 Sellado] (por defecto) vs [🔓 Abierto] -->
+        <div>
+          <label class="block font-bold text-stone-700 text-[11px] mb-1">
+            Estado del Empaque:
+          </label>
+          <div class="grid grid-cols-2 gap-1.5 bg-[#F5F5F7] p-1 rounded-xl">
+            <button type="button" id="btnPackageSealed" onclick="window.setModalPackageState('sellado')" class="py-2 px-3 rounded-lg bg-[#2E5A44] text-white font-bold text-xs shadow-2xs flex items-center justify-center gap-1.5 transition-all">
+              <span>📦</span> Sellado
+            </button>
+            <button type="button" id="btnPackageOpened" onclick="window.setModalPackageState('abierto')" class="py-2 px-3 rounded-lg text-stone-600 hover:text-stone-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all">
+              <span>🔓</span> Abierto
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Selector de Cantidad con Unidad: [Número] + [Unidades / Kilogramos / Gramos / Litros] -->
+        <div>
+          <label class="block font-bold text-stone-700 text-[11px] mb-1">
+            Cantidad y Unidad:
+          </label>
+          <div class="grid grid-cols-5 gap-2">
+            <!-- Número -->
+            <div class="col-span-2">
+              <input type="number" id="modalFoodQuantity" min="0.1" step="0.1" value="1" class="w-full px-3 py-2 rounded-xl border border-transparent bg-[#F5F5F7] focus:bg-white focus:border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#2E5A44] font-bold text-xs" placeholder="Ej. 2">
+            </div>
+            <!-- Unidad -->
+            <div class="col-span-3">
+              <select id="modalFoodUnit" class="w-full px-3 py-2 rounded-xl border border-transparent bg-[#F5F5F7] focus:bg-white focus:border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#2E5A44] font-medium text-xs">
+                <option value="Unidades">Unidades (pz)</option>
+                <option value="Kilogramos">Kilogramos (kg)</option>
+                <option value="Gramos">Gramos (g)</option>
+                <option value="Litros">Litros (L)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTÓN PROMINENTE: ✨ Calcular Caducidad con IA -->
+        <button type="button" id="btnAiCalculateExpiry" onclick="window.calculateExpiryWithAI()" class="w-full bg-[#2E5A44] hover:bg-[#204130] active:scale-[0.98] text-white font-bold py-2.5 px-3 rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5 text-xs">
+          <span>✨ Calcular Caducidad con IA</span>
+        </button>
+
+        <!-- Tarjeta de Estimación de IA & Costo Ecuador -->
+        <div id="aiSuggestionBox" class="hidden p-3 rounded-xl bg-[#EAF2EC] border border-[#2E5A44]/25 space-y-1.5 fade-in">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[#2E5A44] flex items-center gap-1 text-[11px]">
+              <span>🤖</span> Estimación de Inteligencia Artificial:
+            </span>
+            <span id="aiStatusBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white text-stone-800 shadow-2xs"></span>
+          </div>
+          <p id="aiSuggestionTip" class="text-[10px] text-stone-700 leading-snug"></p>
+          
+          <!-- Valor Estimado en USD (Ecuador) -->
+          <div class="flex items-center justify-between pt-1 border-t border-[#2E5A44]/15 text-[10px]">
+            <span class="text-stone-600">Costo estimado canasta Ecuador:</span>
+            <span id="aiEcuadorPrice" class="font-bold text-[#2E5A44]">$0.00 USD</span>
+          </div>
+        </div>
+
+        <!-- 3. Fecha de Vencimiento Estimada / Manual -->
+        <div>
+          <label class="block font-bold text-stone-700 text-[11px] mb-1">
+            Fecha de Caducidad estimada:
+          </label>
+          <input type="date" id="modalExpiryDate" class="w-full px-3 py-2 rounded-xl border border-transparent bg-[#F5F5F7] focus:bg-white focus:border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#2E5A44] font-medium text-xs">
+          
+          <!-- Presets rápidos -->
+          <div class="flex items-center gap-1 mt-1.5">
+            <span class="text-[9px] text-stone-400 font-medium">Ajustar:</span>
+            <button type="button" onclick="window.setModalExpiryDays(2)" class="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-700 text-[9px] font-medium">+2 días</button>
+            <button type="button" onclick="window.setModalExpiryDays(4)" class="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-700 text-[9px] font-medium">+4 días</button>
+            <button type="button" onclick="window.setModalExpiryDays(7)" class="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-700 text-[9px] font-medium">+1 sem</button>
+            <button type="button" onclick="window.setModalExpiryDays(14)" class="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-700 text-[9px] font-medium">+2 sem</button>
+          </div>
+        </div>
+
+        <!-- 4. Selección de Categoría (11 Categorías) -->
+        <div>
+          <label class="block font-bold text-stone-700 text-[11px] mb-1">
+            Categoría del Alimento:
+          </label>
+          <div id="modalCategoryGrid" class="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-1">
+            <!-- 11 Categorías únicas -->
+          </div>
+        </div>
+
+        <!-- 5. Fotografía Opcional -->
+        <div>
+          <label class="block font-bold text-stone-700 text-[11px] mb-1">
+            Foto del alimento (Opcional):
+          </label>
+          <div class="flex items-center gap-2">
+            <button type="button" id="btnStartCamera" onclick="window.startCamera()" class="flex-1 py-1.5 px-2 rounded-xl border border-stone-200 bg-[#F5F5F7] hover:bg-stone-200 text-stone-700 font-semibold flex items-center justify-center gap-1 transition-colors text-[11px]">
+              <span>📷</span> Abrir Cámara
+            </button>
+            <label class="flex-1 py-1.5 px-2 rounded-xl border border-stone-200 bg-[#F5F5F7] hover:bg-stone-200 text-stone-700 font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer text-[11px]">
+              <span>📁</span> Galería
+              <input type="file" accept="image/*" class="hidden" onchange="window.handlePhotoUpload(event)">
+            </label>
+          </div>
+
+          <!-- Video live camera view -->
+          <div id="cameraContainer" class="hidden mt-2 relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center">
+            <video id="webcamVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+            <div class="absolute bottom-2 left-0 right-0 flex items-center justify-center gap-2">
+              <button type="button" onclick="window.takeSnapshot()" class="px-3 py-1 bg-[#2E5A44] text-white rounded-lg font-bold text-xs shadow-md">
+                Tomar Foto
+              </button>
+              <button type="button" onclick="window.stopCamera()" class="px-3 py-1 bg-stone-700 text-white rounded-lg font-medium text-xs">
+                Cancelar
+              </button>
+            </div>
+            <canvas id="photoCanvas" class="hidden"></canvas>
+          </div>
+
+          <!-- Captured thumbnail preview -->
+          <div id="photoPreviewContainer" class="hidden mt-2 flex items-center gap-2 bg-stone-50 p-2 rounded-xl border border-stone-200">
+            <img id="photoThumbnail" src="" class="w-10 h-10 rounded-lg object-cover border border-stone-200">
+            <div class="flex-1 min-w-0">
+              <span class="font-bold text-stone-800 text-[10px] block truncate">Foto lista</span>
+              <span class="text-[9px] text-stone-400">Se guardará junto al alimento</span>
+            </div>
+            <button type="button" onclick="window.clearPhoto()" class="text-[10px] text-red-600 font-bold p-1 hover:bg-red-50 rounded">
+              Eliminar
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-4 py-2.5 border-t border-stone-100 bg-[#F9F8F3] flex items-center justify-end gap-2">
+        <button type="button" onclick="window.closeFoodModal()" class="px-3 py-1.5 rounded-xl text-stone-600 font-semibold hover:bg-stone-200/70 transition-colors text-xs">
+          Cancelar
+        </button>
+        <button type="button" id="btnSaveFood" onclick="window.saveFoodItem()" class="px-3.5 py-1.5 rounded-xl bg-[#2E5A44] hover:bg-[#204130] text-white font-bold transition-all shadow-2xs text-xs flex items-center gap-1">
+          <span>💾 Guardar Alimento</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FLOATING NOTIFICATION TOAST -->
+  <div id="appToast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#2E5A44] text-white px-3.5 py-2 rounded-xl shadow-xl border border-white/20 flex items-center gap-2 text-xs font-semibold fade-in">
+    <span id="toastIcon">🥑</span>
+    <span id="toastMessage">Acción completada</span>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION CORE -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+    import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+    // 11 CATEGORÍAS ÚNICAS E INDEPENDIENTES
+    const CATEGORIES = [
+      { id: 'frutas', name: 'Frutas', emoji: '🍎' },
+      { id: 'verduras', name: 'Verduras', emoji: '🥦' },
+      { id: 'lacteos', name: 'Lácteos', emoji: '🥛' },
+      { id: 'derivados_lacteos', name: 'Derivados lácteos', emoji: '🧀' },
+      { id: 'carnes', name: 'Carnes', emoji: '🥩' },
+      { id: 'huevos', name: 'Huevos', emoji: '🥚' },
+      { id: 'panaderia', name: 'Panadería', emoji: '🍞' },
+      { id: 'granos', name: 'Granos', emoji: '🌾' },
+      { id: 'enlatados', name: 'Enlatados', emoji: '🥫' },
+      { id: 'snacks', name: 'Snacks/Procesados', emoji: '🍪' },
+      { id: 'otros', name: 'Otros', emoji: '📦' }
+    ];
+
+    // Precios y pesos referenciales en Ecuador (USD)
+    const ECUADOR_PRICE_MAP = {
+      carnes: { perKg: 4.80, perUnit: 1.80, unitWeightKg: 0.35 },
+      lacteos: { perKg: 1.15, perLiter: 1.15, perUnit: 1.15, unitWeightKg: 1.0 },
+      derivados_lacteos: { perKg: 5.50, perUnit: 2.20, unitWeightKg: 0.35 },
+      huevos: { perKg: 2.80, perUnit: 0.16, unitWeightKg: 0.06 },
+      verduras: { perKg: 1.30, perUnit: 0.30, unitWeightKg: 0.20 },
+      frutas: { perKg: 1.90, perUnit: 0.35, unitWeightKg: 0.20 },
+      panaderia: { perKg: 2.50, perUnit: 0.20, unitWeightKg: 0.08 },
+      granos: { perKg: 1.30, perUnit: 0.90, unitWeightKg: 0.50 },
+      enlatados: { perKg: 8.50, perUnit: 1.65, unitWeightKg: 0.16 },
+      snacks: { perKg: 5.50, perUnit: 0.80, unitWeightKg: 0.12 },
+      otros: { perKg: 3.00, perUnit: 0.50, unitWeightKg: 0.20 }
+    };
+
+    // Application state
+    let alimentos = [];
+    let savedStats = {
+      savedCount: 5,
+      totalSavedUSD: 14.80,
+      totalWeightKg: 3.2,
+      resolvedAlertIds: []
+    };
+    let activeTab = 'fridge';
+    let selectedCategoryFilter = 'all';
+    let selectedUrgencyFilter = 'all';
+    let searchQuery = '';
+    let selectedModalCategoryId = 'frutas';
+    let selectedModalStorageType = 'refrigerador';
+    let selectedModalPackageState = 'sellado';
+    let currentPhotoBase64 = null;
+    let cameraStream = null;
+    let db = null;
+    let estimatedCurrentModalPriceUSD = 0;
+    let estimatedCurrentModalWeightKg = 0.3;
+
+    function getFutureDate(days) {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split('T')[0];
+    }
+
+    function calculateDaysLeft(dateStr) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(dateStr);
+      target.setHours(0, 0, 0, 0);
+      const diffMs = target.getTime() - today.getTime();
+      return Math.round(diffMs / (1000 * 60 * 60 * 24));
+    }
+
+    function showToast(message, icon = '🥑') {
+      const toast = document.getElementById('appToast');
+      document.getElementById('toastMessage').innerText = message;
+      document.getElementById('toastIcon').innerText = icon;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2600);
+    }
+
+    // Bottom Navigation Tab Switching (60px bar)
+    window.switchTab = function(tabName) {
+      activeTab = tabName;
+      ['fridge', 'recipes', 'alerts', 'profile'].forEach(t => {
+        const viewEl = document.getElementById(`view-${t}`);
+        const btnEl = document.getElementById(`nav-btn-${t}`);
+        const indicatorEl = document.getElementById(`nav-indicator-${t}`);
+
+        if (t === tabName) {
+          viewEl.classList.remove('hidden');
+          btnEl.className = "nav-item flex-1 h-full flex flex-col items-center justify-center gap-0.5 text-[#2E5A44] transition-all relative";
+          btnEl.querySelector('span:nth-child(2)').className = "text-[10px] font-bold leading-none";
+          indicatorEl.className = "w-1 h-1 rounded-full bg-[#2E5A44] mt-0.5";
+        } else {
+          viewEl.classList.add('hidden');
+          btnEl.className = "nav-item flex-1 h-full flex flex-col items-center justify-center gap-0.5 text-stone-400 hover:text-[#2E5A44] transition-all relative";
+          btnEl.querySelector('span:nth-child(2)').className = "text-[10px] font-medium leading-none";
+          indicatorEl.className = "w-1 h-1 rounded-full bg-transparent mt-0.5";
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Calculate item cost based on Ecuador parameters
+    function calculateEcuadorItemCost(name, categoryId, quantity, unit) {
+      const q = (name || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const num = parseFloat(quantity) || 1;
+      const u = (unit || 'Unidades').toLowerCase();
+      const meta = ECUADOR_PRICE_MAP[categoryId] || ECUADOR_PRICE_MAP.otros;
+
+      let unitCost = meta.perUnit;
+      let kgCost = meta.perKg;
+      let unitWeight = meta.unitWeightKg;
+
+      // Custom specific Ecuador products
+      if (/pechuga|pollo/.test(q)) { kgCost = 4.20; unitCost = 1.80; unitWeight = 0.40; }
+      else if (/carne|res|bistec/.test(q)) { kgCost = 7.50; unitCost = 2.40; unitWeight = 0.35; }
+      else if (/pescado|marisco|camaron/.test(q)) { kgCost = 7.80; unitCost = 2.50; unitWeight = 0.30; }
+      else if (/leche/.test(q)) { kgCost = 1.10; unitCost = 1.15; unitWeight = 1.0; }
+      else if (/queso/.test(q)) { kgCost = 4.80; unitCost = 2.20; unitWeight = 0.40; }
+      else if (/huevo/.test(q)) { unitCost = 0.16; unitWeight = 0.06; }
+      else if (/manzana|pera|durazno/.test(q)) { unitCost = 0.35; kgCost = 2.20; unitWeight = 0.18; }
+      else if (/platano|banana|guineo/.test(q)) { unitCost = 0.15; kgCost = 0.90; unitWeight = 0.16; }
+      else if (/aguacate/.test(q)) { unitCost = 0.75; kgCost = 3.50; unitWeight = 0.22; }
+      else if (/tomate/.test(q)) { unitCost = 0.25; kgCost = 1.30; unitWeight = 0.15; }
+      else if (/papa/.test(q)) { unitCost = 0.20; kgCost = 1.10; unitWeight = 0.18; }
+      else if (/pan/.test(q)) { unitCost = 0.18; unitWeight = 0.07; }
+      else if (/atun/.test(q)) { unitCost = 1.65; unitWeight = 0.16; }
+
+      let totalUSD = 1.0;
+      let weightKg = 0.3;
+
+      if (u.includes('kilo') || u === 'kg') {
+        weightKg = num;
+        totalUSD = num * kgCost;
+      } else if (u.includes('gram') || u === 'g') {
+        weightKg = num / 1000;
+        totalUSD = (num / 1000) * kgCost;
+      } else if (u.includes('litr') || u === 'l') {
+        weightKg = num * 1.0;
+        totalUSD = num * (meta.perLiter || 1.15);
+      } else {
+        weightKg = num * unitWeight;
+        totalUSD = num * unitCost;
+      }
+
+      totalUSD = Math.max(0.15, Math.round(totalUSD * 100) / 100);
+      weightKg = Math.max(0.05, Math.round(weightKg * 100) / 100);
+
+      return { totalUSD, weightKg };
+    }
+
+    // Initialize State & Storage
+    async function initDatabase() {
+      try {
+        let config = {
+          projectId: 'zerosobra-app',
+          apiKey: 'AIzaSyFakeKeyForZeroSobraOfflineLocalCache',
+          authDomain: 'zerosobra-app.firebaseapp.com'
+        };
+
+        try {
+          const res = await fetch('/api/config');
+          if (res.ok) {
+            const data = await res.json();
+            if (data.firebase && data.firebase.projectId) {
+              config = { ...config, ...data.firebase };
+            }
+          }
+        } catch (e) {}
+
+        const app = initializeApp(config);
+        db = getFirestore(app);
+
+        const col = collection(db, 'alimentos');
+        onSnapshot(col, (snapshot) => {
+          const list = [];
+          snapshot.forEach(d => {
+            const data = d.data();
+            list.push({
+              id: d.id,
+              ...data,
+              daysLeft: calculateDaysLeft(data.expiryDate)
+            });
+          });
+          if (list.length > 0) {
+            alimentos = list;
+            persistState();
+            renderApp();
+          } else {
+            loadState();
+          }
+        }, () => {
+          loadState();
+        });
+      } catch (e) {
+        loadState();
+      }
+    }
+
+    function persistState() {
+      try {
+        localStorage.setItem('zerosobra_prod_alimentos', JSON.stringify(alimentos));
+        localStorage.setItem('zerosobra_prod_stats', JSON.stringify(savedStats));
+        fetch('/api/alimentos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(alimentos)
+        }).catch(() => {});
+      } catch (e) {}
+    }
+
+    function loadState() {
+      try {
+        const stored = localStorage.getItem('zerosobra_prod_alimentos');
+        const stats = localStorage.getItem('zerosobra_prod_stats');
+        if (stored) {
+          alimentos = JSON.parse(stored);
+        } else {
+          // Stock inicial realista con precios de Ecuador y cantidades definidas
+          alimentos = [
+            {
+              id: 'item_1',
+              name: 'Pechuga de pollo fresca',
+              categoryId: 'carnes',
+              storageType: 'refrigerador',
+              packageState: 'sellado',
+              quantity: 2,
+              unit: 'Kilogramos',
+              costUSD: 8.40,
+              weightKg: 2.0,
+              expiryDate: getFutureDate(1)
+            },
+            {
+              id: 'item_2',
+              name: 'Manzanas Royal Gala',
+              categoryId: 'frutas',
+              storageType: 'refrigerador',
+              packageState: 'sellado',
+              quantity: 4,
+              unit: 'Unidades',
+              costUSD: 1.40,
+              weightKg: 0.72,
+              expiryDate: getFutureDate(2)
+            },
+            {
+              id: 'item_3',
+              name: 'Leche entera pasteurizada',
+              categoryId: 'lacteos',
+              storageType: 'refrigerador',
+              packageState: 'abierto',
+              quantity: 1,
+              unit: 'Litros',
+              costUSD: 1.15,
+              weightKg: 1.0,
+              expiryDate: getFutureDate(3)
+            },
+            {
+              id: 'item_4',
+              name: 'Camarones del Golfo',
+              categoryId: 'carnes',
+              storageType: 'congelador',
+              packageState: 'sellado',
+              quantity: 1,
+              unit: 'Kilogramos',
+              costUSD: 7.80,
+              weightKg: 1.0,
+              expiryDate: getFutureDate(120)
+            },
+            {
+              id: 'item_5',
+              name: 'Queso fresco de mesa',
+              categoryId: 'derivados_lacteos',
+              storageType: 'refrigerador',
+              packageState: 'sellado',
+              quantity: 1,
+              unit: 'Unidades',
+              costUSD: 2.20,
+              weightKg: 0.40,
+              expiryDate: getFutureDate(6)
+            },
+            {
+              id: 'item_6',
+              name: 'Espinacas tiernas',
+              categoryId: 'verduras',
+              storageType: 'refrigerador',
+              packageState: 'sellado',
+              quantity: 1,
+              unit: 'Unidades',
+              costUSD: 0.60,
+              weightKg: 0.25,
+              expiryDate: getFutureDate(4)
+            }
+          ];
+        }
+
+        if (stats) {
+          savedStats = JSON.parse(stats);
+        }
+      } catch (e) {
+        alimentos = [];
+      }
+
+      alimentos.forEach(item => {
+        item.daysLeft = calculateDaysLeft(item.expiryDate);
+        if (!item.costUSD) {
+          const c = calculateEcuadorItemCost(item.name, item.categoryId, item.quantity, item.unit);
+          item.costUSD = c.totalUSD;
+          item.weightKg = c.weightKg;
+        }
+      });
+      renderApp();
+    }
+
+    // Render Categorías en Barra de Filtro Horizontal
+    function renderCategoryFilters() {
+      const container = document.getElementById('categoryFilterContainer');
+      container.innerHTML = '';
+
+      const allBtn = document.createElement('button');
+      allBtn.onclick = () => window.setCategoryFilter('all');
+      allBtn.className = selectedCategoryFilter === 'all'
+        ? "px-2.5 py-1 rounded-xl text-[11px] font-bold bg-[#2E5A44] text-white shadow-2xs shrink-0 transition-all"
+        : "px-2.5 py-1 rounded-xl text-[11px] font-medium bg-white hover:bg-stone-100 text-stone-700 border border-[#EAE6DC] shrink-0 transition-all";
+      allBtn.innerText = 'Todas';
+      container.appendChild(allBtn);
+
+      CATEGORIES.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.onclick = () => window.setCategoryFilter(cat.id);
+        const isActive = selectedCategoryFilter === cat.id;
+        btn.className = isActive
+          ? "px-2.5 py-1 rounded-xl text-[11px] font-bold bg-[#2E5A44] text-white shadow-2xs shrink-0 flex items-center gap-1 transition-all whitespace-nowrap"
+          : "px-2.5 py-1 rounded-xl text-[11px] font-medium bg-white hover:bg-stone-100 text-stone-700 border border-[#EAE6DC] shrink-0 flex items-center gap-1 transition-all whitespace-nowrap";
+        btn.innerHTML = `<span>${cat.emoji}</span><span>${cat.name}</span>`;
+        container.appendChild(btn);
+      });
+    }
+
+    // Render Modal Category Grid (11 Categorías)
+    function renderModalCategoryGrid() {
+      const grid = document.getElementById('modalCategoryGrid');
+      grid.innerHTML = '';
+
+      CATEGORIES.forEach(cat => {
+        const isSelected = selectedModalCategoryId === cat.id;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => window.selectModalCategory(cat.id);
+        btn.className = isSelected
+          ? `p-2 rounded-xl border-2 border-[#2E5A44] bg-[#2E5A44]/10 flex items-center gap-1.5 text-left transition-all shadow-2xs`
+          : `p-2 rounded-xl border border-stone-200 hover:border-stone-300 bg-[#F5F5F7] flex items-center gap-1.5 text-left transition-all`;
+        
+        btn.innerHTML = `
+          <span class="text-sm shrink-0">${cat.emoji}</span>
+          <span class="text-[10px] font-bold block truncate text-stone-800">${cat.name}</span>
+        `;
+        grid.appendChild(btn);
+      });
+    }
+
+    // MAIN RENDER APP FUNCTION
+    function renderApp() {
+      let redCount = 0;
+      let yellowCount = 0;
+      let greenCount = 0;
+      let totalRiskUSD = 0;
+
+      alimentos.forEach(item => {
+        item.daysLeft = calculateDaysLeft(item.expiryDate);
+        if (item.daysLeft < 2) {
+          redCount++;
+          totalRiskUSD += (item.costUSD || 1.50);
+        } else if (item.daysLeft <= 4) {
+          yellowCount++;
+        } else {
+          greenCount++;
+        }
+      });
+
+      // Update Top Counters & KPIs
+      document.getElementById('kpiTotal').innerText = alimentos.length;
+      document.getElementById('kpiRed').innerText = redCount;
+      document.getElementById('kpiYellow').innerText = yellowCount;
+      document.getElementById('kpiGreen').innerText = greenCount;
+      document.getElementById('savedCounterHeader').innerText = `${savedStats.savedCount} salvados`;
+      document.getElementById('kpiFridgeRiskUSD').innerText = `$${totalRiskUSD.toFixed(2)}`;
+      document.getElementById('kpiFridgeSavedUSD').innerText = `$${savedStats.totalSavedUSD.toFixed(2)}`;
+
+      // Update Bottom Nav Alerts Badge
+      const navBadge = document.getElementById('navAlertBadge');
+      if (redCount > 0) {
+        navBadge.innerText = redCount;
+        navBadge.classList.remove('hidden');
+      } else {
+        navBadge.classList.add('hidden');
+      }
+      document.getElementById('alertUrgentCount').innerText = `${redCount} alimentos`;
+      document.getElementById('alertWarningCount').innerText = `${yellowCount} alimentos`;
+
+      // Update High-Impact Profile Environmental Stats
+      renderProfileStats();
+
+      // Filtered Items for Tab 1
+      let filtered = [...alimentos];
+      if (selectedCategoryFilter !== 'all') {
+        filtered = filtered.filter(f => f.categoryId === selectedCategoryFilter);
+      }
+      if (selectedUrgencyFilter === 'urgent') {
+        filtered = filtered.filter(f => f.daysLeft < 2);
+      } else if (selectedUrgencyFilter === 'warning') {
+        filtered = filtered.filter(f => f.daysLeft >= 2 && f.daysLeft <= 4);
+      } else if (selectedUrgencyFilter === 'fresh') {
+        filtered = filtered.filter(f => f.daysLeft > 4);
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        filtered = filtered.filter(f => {
+          const c = CATEGORIES.find(cat => cat.id === f.categoryId);
+          return f.name.toLowerCase().includes(q) || (c && c.name.toLowerCase().includes(q));
+        });
+      }
+
+      // Sort: closest expiry first
+      filtered.sort((a, b) => a.daysLeft - b.daysLeft);
+
+      // Render Cards in Tab 1 (Fridge)
+      const foodGrid = document.getElementById('foodGrid');
+      const emptyFridgeState = document.getElementById('emptyFridgeState');
+      foodGrid.innerHTML = '';
+      document.getElementById('filteredCountBadge').innerText = `${filtered.length} / ${alimentos.length}`;
+
+      if (filtered.length === 0) {
+        emptyFridgeState.classList.remove('hidden');
+      } else {
+        emptyFridgeState.classList.add('hidden');
+        filtered.forEach(item => {
+          const cat = CATEGORIES.find(c => c.id === item.categoryId) || CATEGORIES[10];
+          
+          let statusBadge = '';
+          let borderAccent = 'border-[#EAE6DC]';
+
+          if (item.daysLeft < 0) {
+            borderAccent = 'border-[#E06D53]/60 bg-[#E06D53]/5';
+            statusBadge = `<span class="inline-flex items-center text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#E06D53]/15 text-[#E06D53] border border-[#E06D53]/30">🔴 Venció hace ${Math.abs(item.daysLeft)}d</span>`;
+          } else if (item.daysLeft === 0) {
+            borderAccent = 'border-[#E06D53] bg-[#E06D53]/5';
+            statusBadge = `<span class="inline-flex items-center text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#E06D53] text-white">🔴 ¡Vence hoy!</span>`;
+          } else if (item.daysLeft === 1) {
+            borderAccent = 'border-[#E06D53]/60 bg-[#E06D53]/5';
+            statusBadge = `<span class="inline-flex items-center text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#E06D53]/15 text-[#E06D53] border border-[#E06D53]/30">🔴 Vence mañana</span>`;
+          } else if (item.daysLeft <= 4) {
+            borderAccent = 'border-amber-300 bg-amber-50/20';
+            statusBadge = `<span class="inline-flex items-center text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">🟡 En ${item.daysLeft} días</span>`;
+          } else {
+            borderAccent = 'border-[#2E5A44]/20';
+            statusBadge = `<span class="inline-flex items-center text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#2E5A44]/10 text-[#2E5A44] border border-[#2E5A44]/20">🟢 En ${item.daysLeft} días</span>`;
+          }
+
+          const card = document.createElement('div');
+          card.className = `p-2.5 rounded-xl border ${borderAccent} bg-white shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-2.5`;
+          
+          const qtyText = item.quantity && item.unit ? `${item.quantity} ${item.unit}` : '1 Unidad';
+          const priceText = item.costUSD ? `$${item.costUSD.toFixed(2)}` : '$1.50';
+
+          card.innerHTML = `
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+              <div class="w-10 h-10 rounded-xl bg-[#F5F5F7] flex items-center justify-center text-lg shrink-0 border border-stone-200">
+                ${item.photo ? `<img src="${item.photo}" class="w-full h-full object-cover rounded-xl">` : cat.emoji}
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <h4 class="text-xs font-bold text-stone-900 truncate leading-tight">${item.name}</h4>
+                  <span class="text-[9px] text-stone-400 font-medium">${cat.name}</span>
+                  ${item.storageType === 'congelador' ? `<span class="inline-flex items-center text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-sky-50 text-sky-700 border border-sky-200 gap-0.5">❄️ Congelador</span>` : ''}
+                  ${item.packageState === 'abierto' ? `<span class="inline-flex items-center text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-amber-50 text-amber-800 border border-amber-200 gap-0.5">🔓 Abierto</span>` : ''}
+                </div>
+                <div class="flex items-center gap-2 mt-0.5 flex-wrap text-[10px] text-stone-500">
+                  <span class="font-medium text-stone-700 bg-stone-100 px-1.5 py-0.2 rounded-md">${qtyText}</span>
+                  <span class="font-bold text-[#2E5A44]">${priceText} USD</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 shrink-0">
+              <div class="text-right">
+                ${statusBadge}
+              </div>
+              <!-- Action Button: Mark as Saved/Consumed (Triggers auto alert dismissal) -->
+              <button onclick="window.markItemAsSaved('${item.id}')" title="Marcar como consumido y salvar" class="px-2 py-1 bg-[#2E5A44] hover:bg-[#204130] text-white rounded-lg text-[10px] font-bold transition-all shadow-2xs flex items-center gap-0.5">
+                <span>✓ Salvar</span>
+              </button>
+              <button onclick="window.deleteFoodItem('${item.id}')" title="Eliminar registro" class="w-6 h-6 rounded-lg text-stone-400 hover:text-red-600 hover:bg-stone-100 flex items-center justify-center transition-colors text-xs">
+                ✕
+              </button>
+            </div>
+          `;
+          foodGrid.appendChild(card);
+        });
+      }
+
+      // Render Tab 3: Alerts List
+      renderAlertsTab();
+    }
+
+    // Render Tab 3: Alerts with Auto-Dismissal Logic
+    function renderAlertsTab() {
+      const urgentContainer = document.getElementById('alertsUrgentList');
+      const warningContainer = document.getElementById('alertsWarningList');
+      urgentContainer.innerHTML = '';
+      warningContainer.innerHTML = '';
+
+      const urgentItems = alimentos.filter(a => a.daysLeft < 2 && !savedStats.resolvedAlertIds.includes(a.id));
+      const warningItems = alimentos.filter(a => a.daysLeft >= 2 && a.daysLeft <= 4 && !savedStats.resolvedAlertIds.includes(a.id));
+
+      if (urgentItems.length === 0) {
+        urgentContainer.innerHTML = `
+          <div class="p-3 bg-white rounded-xl border border-stone-200 text-center text-[11px] text-stone-400">
+            ✨ No tienes alimentos en riesgo urgente. ¡Gran trabajo!
+          </div>
+        `;
+      } else {
+        urgentItems.forEach(item => {
+          const cat = CATEGORIES.find(c => c.id === item.categoryId) || CATEGORIES[10];
+          const div = document.createElement('div');
+          div.className = "p-2.5 rounded-xl border border-[#E06D53]/40 bg-white shadow-2xs flex items-center justify-between gap-2";
+          div.innerHTML = `
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-base shrink-0">${cat.emoji}</span>
+              <div class="min-w-0">
+                <span class="text-xs font-bold text-stone-900 block truncate">${item.name}</span>
+                <span class="text-[10px] text-[#E06D53] font-medium block">
+                  ${item.daysLeft < 0 ? `Venció hace ${Math.abs(item.daysLeft)}d` : item.daysLeft === 0 ? '¡Vence hoy!' : 'Vence mañana'} • ${item.quantity || 1} ${item.unit || 'Ud'} ($${(item.costUSD || 1.5).toFixed(2)})
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="window.markItemAsSaved('${item.id}')" class="px-2 py-1 bg-[#2E5A44] text-white rounded-lg text-[10px] font-bold hover:bg-[#204130] transition-colors">
+                ✓ Consumido
+              </button>
+            </div>
+          `;
+          urgentContainer.appendChild(div);
+        });
+      }
+
+      if (warningItems.length === 0) {
+        warningContainer.innerHTML = `
+          <div class="p-3 bg-white rounded-xl border border-stone-200 text-center text-[11px] text-stone-400">
+            Sin alimentos próximos a vencer en los siguientes 2-4 días.
+          </div>
+        `;
+      } else {
+        warningItems.forEach(item => {
+          const cat = CATEGORIES.find(c => c.id === item.categoryId) || CATEGORIES[10];
+          const div = document.createElement('div');
+          div.className = "p-2.5 rounded-xl border border-amber-200 bg-white shadow-2xs flex items-center justify-between gap-2";
+          div.innerHTML = `
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-base shrink-0">${cat.emoji}</span>
+              <div class="min-w-0">
+                <span class="text-xs font-bold text-stone-900 block truncate">${item.name}</span>
+                <span class="text-[10px] text-amber-700 font-medium block">
+                  Quedan ${item.daysLeft} días de frescura • ${item.quantity || 1} ${item.unit || 'Ud'} ($${(item.costUSD || 1.5).toFixed(2)})
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="window.markItemAsSaved('${item.id}')" class="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-[10px] font-semibold transition-colors">
+                ✓ Consumir
+              </button>
+            </div>
+          `;
+          warningContainer.appendChild(div);
+        });
+      }
+    }
+
+    // Render High Impact Environmental Profile
+    function renderProfileStats() {
+      const savedCount = savedStats.savedCount || 0;
+      const totalUSD = savedStats.totalSavedUSD || 0;
+      const totalKg = savedStats.totalWeightKg || (savedCount * 0.4);
+
+      // Equivalencias Tangibles del Mundo Real:
+      // 1. Agua: ~1,000 Litros por Kg guardado
+      const waterLitres = Math.round(totalKg * 1000);
+      const showerEquiv = Math.max(1, Math.round(waterLitres / 50)); // 50 L por ducha de 5 min
+
+      // 2. CO2: ~2.5 kg CO2 por kg de comida
+      const co2Kg = (totalKg * 2.5).toFixed(1);
+      const carKm = Math.max(1, Math.round(parseFloat(co2Kg) / 0.12)); // 0.12 kg CO2 por km de auto
+
+      // 3. Platos de comida servidos: ~0.35 kg por plato
+      const mealsEquiv = Math.max(1, Math.round(totalKg / 0.35));
+
+      document.getElementById('profileWaterTotal').innerText = `${waterLitres.toLocaleString()} L`;
+      document.getElementById('profileWaterEquiv').innerText = `Equivale a ${showerEquiv} duchas de 5 min`;
+
+      document.getElementById('profileCo2Total').innerText = `${co2Kg} kg`;
+      document.getElementById('profileCo2Equiv').innerText = `Equivale a ${carKm} km no recorridos en auto`;
+
+      document.getElementById('profileMoneyTotal').innerText = `$${totalUSD.toFixed(2)}`;
+      document.getElementById('profileFoodKgTotal').innerText = `${totalKg.toFixed(1)} kg`;
+      document.getElementById('profileSavedCountTotal').innerText = `${savedCount} alimentos`;
+      document.getElementById('profileMealsEquiv').innerText = `Equivale a ${mealsEquiv} platos servidos`;
+    }
+
+    // Automatic Alert Deactivation: Mark item as saved/consumed
+    window.markItemAsSaved = async function(id) {
+      const itemIndex = alimentos.findIndex(a => a.id === id);
+      if (itemIndex === -1) return;
+
+      const item = alimentos[itemIndex];
+      const savedUSD = item.costUSD || 1.50;
+      const savedKg = item.weightKg || 0.35;
+
+      savedStats.savedCount += 1;
+      savedStats.totalSavedUSD += savedUSD;
+      savedStats.totalWeightKg += savedKg;
+
+      // Automatically deactivates and dismisses alert
+      if (!savedStats.resolvedAlertIds.includes(id)) {
+        savedStats.resolvedAlertIds.push(id);
+      }
+
+      alimentos.splice(itemIndex, 1);
+      persistState();
+
+      if (db) {
+        try {
+          await deleteDoc(doc(db, 'alimentos', id));
+        } catch (e) {}
+      }
+
+      showToast(`¡Salvaste ${item.name}! Ahorraste $${savedUSD.toFixed(2)} USD`, '✨');
+      renderApp();
+    };
+
+    window.deleteFoodItem = async function(id) {
+      alimentos = alimentos.filter(a => a.id !== id);
+      savedStats.resolvedAlertIds = savedStats.resolvedAlertIds.filter(x => x !== id);
+      persistState();
+
+      if (db) {
+        try {
+          await deleteDoc(doc(db, 'alimentos', id));
+        } catch (e) {}
+      }
+
+      showToast('Alimento eliminado', '🗑️');
+      renderApp();
+    };
+
+    window.dismissAllResolvedAlerts = function() {
+      savedStats.resolvedAlertIds = alimentos.map(a => a.id);
+      persistState();
+      renderAlertsTab();
+      showToast('Alertas silenciadas', '🔔');
+    };
+
+    // Filters and Search
+    window.setCategoryFilter = function(catId) {
+      selectedCategoryFilter = catId;
+      const cat = CATEGORIES.find(c => c.id === catId);
+      document.getElementById('activeCategoryLabel').innerText = cat ? cat.name : 'Todas';
+      renderCategoryFilters();
+      renderApp();
+    };
+
+    window.setUrgencyFilter = function(urgency) {
+      selectedUrgencyFilter = urgency;
+      ['all', 'urgent', 'warning', 'fresh'].forEach(u => {
+        const btn = document.getElementById(`filterUrgency${u.charAt(0).toUpperCase() + u.slice(1)}`);
+        if (u === urgency) {
+          btn.className = "py-1 rounded-lg bg-white text-[#2E5A44] shadow-2xs font-bold transition-all";
+        } else {
+          btn.className = "py-1 rounded-lg text-stone-500 hover:bg-white/60 transition-all";
+        }
+      });
+      renderApp();
+    };
+
+    window.handleSearchChange = function() {
+      searchQuery = document.getElementById('searchInput').value;
+      renderApp();
+    };
+
+    // Modal Control
+    window.setModalStorageType = function(type) {
+      selectedModalStorageType = type;
+      const btnFridge = document.getElementById('btnStorageFridge');
+      const btnFreezer = document.getElementById('btnStorageFreezer');
+      if (type === 'congelador') {
+        btnFridge.className = "py-2 px-3 rounded-lg text-stone-600 hover:text-stone-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all";
+        btnFreezer.className = "py-2 px-3 rounded-lg bg-[#2E5A44] text-white font-bold text-xs shadow-2xs flex items-center justify-center gap-1.5 transition-all";
+      } else {
+        btnFridge.className = "py-2 px-3 rounded-lg bg-[#2E5A44] text-white font-bold text-xs shadow-2xs flex items-center justify-center gap-1.5 transition-all";
+        btnFreezer.className = "py-2 px-3 rounded-lg text-stone-600 hover:text-stone-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all";
+      }
+
+      // Si ya hay un alimento en pantalla y sugerencia abierta, recalcular automáticamente
+      const foodName = document.getElementById('modalFoodName').value.trim();
+      if (foodName && !document.getElementById('aiSuggestionBox').classList.contains('hidden')) {
+        window.calculateExpiryWithAI();
+      }
+    };
+
+    window.setModalPackageState = function(state) {
+      selectedModalPackageState = state;
+      const btnSealed = document.getElementById('btnPackageSealed');
+      const btnOpened = document.getElementById('btnPackageOpened');
+      if (state === 'abierto') {
+        btnSealed.className = "py-2 px-3 rounded-lg text-stone-600 hover:text-stone-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all";
+        btnOpened.className = "py-2 px-3 rounded-lg bg-[#2E5A44] text-white font-bold text-xs shadow-2xs flex items-center justify-center gap-1.5 transition-all";
+      } else {
+        btnSealed.className = "py-2 px-3 rounded-lg bg-[#2E5A44] text-white font-bold text-xs shadow-2xs flex items-center justify-center gap-1.5 transition-all";
+        btnOpened.className = "py-2 px-3 rounded-lg text-stone-600 hover:text-stone-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all";
+      }
+
+      // Si ya hay un alimento en pantalla y sugerencia abierta, recalcular automáticamente con IA
+      const foodName = document.getElementById('modalFoodName').value.trim();
+      if (foodName && !document.getElementById('aiSuggestionBox').classList.contains('hidden')) {
+        window.calculateExpiryWithAI();
+      }
+    };
+
+    window.openFoodModal = function() {
+      document.getElementById('modalFoodName').value = '';
+      document.getElementById('modalFoodQuantity').value = '1';
+      document.getElementById('modalFoodUnit').value = 'Unidades';
+      document.getElementById('modalExpiryDate').value = getFutureDate(5);
+      document.getElementById('aiSuggestionBox').classList.add('hidden');
+      selectedModalCategoryId = 'frutas';
+      window.setModalStorageType('refrigerador');
+      window.setModalPackageState('sellado');
+      estimatedCurrentModalPriceUSD = 0;
+      estimatedCurrentModalWeightKg = 0.3;
+      window.clearPhoto();
+      renderModalCategoryGrid();
+      document.getElementById('foodModal').classList.remove('hidden');
+      setTimeout(() => {
+        document.getElementById('modalFoodName').focus();
+      }, 100);
+    };
+
+    window.closeFoodModal = function() {
+      window.stopCamera();
+      document.getElementById('foodModal').classList.add('hidden');
+    };
+
+    window.selectModalCategory = function(catId) {
+      selectedModalCategoryId = catId;
+      renderModalCategoryGrid();
+    };
+
+    window.setModalExpiryDays = function(days) {
+      document.getElementById('modalExpiryDate').value = getFutureDate(days);
+    };
+
+    // BOTÓN: ✨ Calcular Caducidad con IA (Consulta la API `/api/ai/estimate-expiry`)
+    window.calculateExpiryWithAI = async function() {
+      const nameInput = document.getElementById('modalFoodName');
+      const foodName = nameInput.value.trim();
+      const quantity = parseFloat(document.getElementById('modalFoodQuantity').value) || 1;
+      const unit = document.getElementById('modalFoodUnit').value;
+
+      if (!foodName) {
+        showToast('Ingresa el nombre del alimento primero', '⚠️');
+        nameInput.focus();
+        return;
+      }
+
+      const btn = document.getElementById('btnAiCalculateExpiry');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span>⏳ Calculando con IA...</span>`;
+      btn.disabled = true;
+
+      const storageType = selectedModalStorageType || 'refrigerador';
+      const packageState = selectedModalPackageState || 'sellado';
+
+      try {
+        const res = await fetch('/api/ai/estimate-expiry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ foodName, quantity, unit, storageType, packageState })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          // Autocompletar fecha y categoría
+          document.getElementById('modalExpiryDate').value = data.expiryDate;
+          selectedModalCategoryId = data.categoryId || 'otros';
+          renderModalCategoryGrid();
+
+          // Semáforo y sugerencia
+          const box = document.getElementById('aiSuggestionBox');
+          const tip = document.getElementById('aiSuggestionTip');
+          const badge = document.getElementById('aiStatusBadge');
+          const price = document.getElementById('aiEcuadorPrice');
+
+          box.classList.remove('hidden');
+          tip.innerText = `${data.tip} Conservación recomendada: ${data.preservation}.`;
+
+          estimatedCurrentModalPriceUSD = data.estimatedCostUSD || calculateEcuadorItemCost(foodName, data.categoryId, quantity, unit).totalUSD;
+          estimatedCurrentModalWeightKg = data.totalWeightKg || calculateEcuadorItemCost(foodName, data.categoryId, quantity, unit).weightKg;
+
+          price.innerText = `$${estimatedCurrentModalPriceUSD.toFixed(2)} USD`;
+
+          if (data.storageType === 'congelador') {
+            badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200";
+            badge.innerText = data.statusLabel || `❄️ Congelador (~${data.estimatedDays} días)`;
+          } else if (data.status === 'urgent') {
+            badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#E06D53] text-white";
+            badge.innerText = '🔴 Urgente (<2 días)';
+          } else if (data.status === 'warning') {
+            badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200";
+            badge.innerText = '🟡 Por Vencer (2-4 días)';
+          } else {
+            badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#2E5A44]/15 text-[#2E5A44] border border-[#2E5A44]/30";
+            badge.innerText = '🟢 Fresco (>4 días)';
+          }
+
+          showToast(`Caducidad estimada: ${data.estimatedDays} días ($${estimatedCurrentModalPriceUSD.toFixed(2)})`, '✨');
+        } else {
+          fallbackLocalCalculation(foodName, quantity, unit, storageType, packageState);
+        }
+      } catch (e) {
+        fallbackLocalCalculation(foodName, quantity, unit, storageType, packageState);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    };
+
+    function fallbackLocalCalculation(foodName, quantity, unit, storageType = 'refrigerador', packageState = 'sellado') {
+      const q = foodName.toLowerCase();
+      const isFreezer = storageType === 'congelador';
+      const isOpened = packageState === 'abierto';
+      let days = isFreezer ? 120 : 5;
+      let cat = 'otros';
+      let status = isFreezer ? '❄️ Congelado (>1 mes)' : 'Fresco (>4 días)';
+
+      if (/pollo|carne|pescado|res/.test(q)) {
+        days = isFreezer ? (isOpened ? 90 : 180) : (isOpened ? 2 : 3);
+        cat = 'carnes';
+        status = isFreezer ? '❄️ Congelado' : (days <= 2 ? '🔴 Urgente (<2 días)' : '🟡 Por Vencer (2-4 días)');
+      } else if (/leche|yogur/.test(q)) {
+        days = isFreezer ? 60 : (isOpened ? 3 : 5);
+        cat = 'lacteos';
+        status = isOpened ? '🟡 Por Vencer (2-4 días)' : 'Fresco (>4 días)';
+      } else if (/queso/.test(q)) {
+        days = isFreezer ? 60 : (isOpened ? 4 : 8);
+        cat = 'derivados_lacteos';
+      } else if (/huevo/.test(q)) {
+        days = isFreezer ? 180 : 15; cat = 'huevos';
+      } else if (/lechuga|espinaca|tomate/.test(q)) {
+        days = isFreezer ? 180 : (isOpened ? 2 : 4);
+        cat = 'verduras';
+        status = isOpened ? '🔴 Urgente (<2 días)' : 'Por Vencer (2-4 días)';
+      } else if (/atun|sardina|lata|enlatad|conserva/.test(q)) {
+        days = isFreezer ? 60 : (isOpened ? 3 : 180);
+        cat = 'enlatados';
+        status = isOpened ? '🟡 Por Vencer (2-4 días)' : '🟢 Fresco (>4 días)';
+      } else if (/galleta|cereal|snack|papas/.test(q)) {
+        days = isFreezer ? 60 : (isOpened ? 4 : 45);
+        cat = 'snacks';
+        status = isOpened ? '🟡 Por Vencer (2-4 días)' : '🟢 Fresco (>4 días)';
+      } else if (/manzana|banana|fruta/.test(q)) {
+        days = isFreezer ? 180 : 6; cat = 'frutas';
+      } else if (isOpened) {
+        days = isFreezer ? 60 : 3;
+      }
+
+      document.getElementById('modalExpiryDate').value = getFutureDate(days);
+      selectedModalCategoryId = cat;
+      renderModalCategoryGrid();
+
+      const costObj = calculateEcuadorItemCost(foodName, cat, quantity, unit);
+      estimatedCurrentModalPriceUSD = costObj.totalUSD;
+      estimatedCurrentModalWeightKg = costObj.weightKg;
+
+      const box = document.getElementById('aiSuggestionBox');
+      const tip = document.getElementById('aiSuggestionTip');
+      const badge = document.getElementById('aiStatusBadge');
+      const price = document.getElementById('aiEcuadorPrice');
+
+      box.classList.remove('hidden');
+      if (isOpened) {
+        tip.innerText = `Empaque abierto: consumir prioritariamente en ${days} días y almacenar bien cerrado.`;
+        badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200";
+        badge.innerText = `🔓 Abierto (~${days} días)`;
+      } else if (isFreezer) {
+        tip.innerText = `Conservación en congelador a -18°C debidamente etiquetado.`;
+        badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200";
+        badge.innerText = status;
+      } else {
+        tip.innerText = `Estimado localmente: Mantener en refrigeración controlada a 4°C.`;
+        badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#2E5A44]/15 text-[#2E5A44]";
+        badge.innerText = status;
+      }
+      price.innerText = `$${estimatedCurrentModalPriceUSD.toFixed(2)} USD`;
+    }
+
+    // Guardar Alimento
+    window.saveFoodItem = async function() {
+      const name = document.getElementById('modalFoodName').value.trim();
+      const quantity = parseFloat(document.getElementById('modalFoodQuantity').value) || 1;
+      const unit = document.getElementById('modalFoodUnit').value;
+      const expiryDate = document.getElementById('modalExpiryDate').value;
+
+      if (!name) {
+        showToast('Ingresa el nombre del alimento', '⚠️');
+        return;
+      }
+      if (!expiryDate) {
+        showToast('Selecciona una fecha de caducidad', '⚠️');
+        return;
+      }
+
+      let costUSD = estimatedCurrentModalPriceUSD;
+      let weightKg = estimatedCurrentModalWeightKg;
+
+      if (!costUSD || costUSD <= 0) {
+        const c = calculateEcuadorItemCost(name, selectedModalCategoryId, quantity, unit);
+        costUSD = c.totalUSD;
+        weightKg = c.weightKg;
+      }
+
+      const newItem = {
+        id: 'item_' + Date.now(),
+        name,
+        categoryId: selectedModalCategoryId,
+        storageType: selectedModalStorageType || 'refrigerador',
+        packageState: selectedModalPackageState || 'sellado',
+        quantity,
+        unit,
+        costUSD,
+        weightKg,
+        expiryDate,
+        photo: currentPhotoBase64,
+        createdAt: new Date().toISOString()
+      };
+
+      alimentos.unshift(newItem);
+      persistState();
+
+      if (db) {
+        try {
+          await addDoc(collection(db, 'alimentos'), newItem);
+        } catch (e) {}
+      }
+
+      showToast(`${name} registrado con éxito`, '🥑');
+      window.closeFoodModal();
+      renderApp();
+    };
+
+    // Camera & Photo Handling
+    window.startCamera = async function() {
+      const container = document.getElementById('cameraContainer');
+      const video = document.getElementById('webcamVideo');
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+          audio: false
+        });
+        video.srcObject = cameraStream;
+        container.classList.remove('hidden');
+      } catch (err) {
+        showToast('No se pudo acceder a la cámara. Usa la galería.', '⚠️');
+      }
+    };
+
+    window.stopCamera = function() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      document.getElementById('cameraContainer').classList.add('hidden');
+    };
+
+    window.takeSnapshot = function() {
+      const video = document.getElementById('webcamVideo');
+      const canvas = document.getElementById('photoCanvas');
+      canvas.width = video.videoWidth || 320;
+      canvas.height = video.videoHeight || 240;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
+      
+      document.getElementById('photoThumbnail').src = currentPhotoBase64;
+      document.getElementById('photoPreviewContainer').classList.remove('hidden');
+      window.stopCamera();
+    };
+
+    window.handlePhotoUpload = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        currentPhotoBase64 = e.target.result;
+        document.getElementById('photoThumbnail').src = currentPhotoBase64;
+        document.getElementById('photoPreviewContainer').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.clearPhoto = function() {
+      currentPhotoBase64 = null;
+      document.getElementById('photoPreviewContainer').classList.add('hidden');
+      document.getElementById('photoThumbnail').src = '';
+    };
+
+    // Recetas Anti-Desperdicio
+    window.generateAntiWasteRecipe = function() {
+      const urgent = alimentos.filter(a => a.daysLeft <= 4);
+      const targetItems = urgent.length > 0 ? urgent : alimentos;
+
+      if (targetItems.length === 0) {
+        showToast('Registra alimentos primero para crear tu receta', '🥑');
+        return;
+      }
+
+      const emptyCard = document.getElementById('recipeEmptyState');
+      const resultCard = document.getElementById('recipeResultCard');
+      const titleEl = document.getElementById('recipeTitle');
+      const descEl = document.getElementById('recipeDescription');
+      const ingList = document.getElementById('recipeIngredientsList');
+      const stepsList = document.getElementById('recipeStepsList');
+
+      emptyCard.classList.add('hidden');
+      resultCard.classList.remove('hidden');
+
+      const primary = targetItems[0];
+      const secondary = targetItems[1] || targetItems[0];
+
+      titleEl.innerText = `Salteado Express de Rescate: ${primary.name}`;
+      descEl.innerText = `Plato ideado para aprovechar de inmediato ${primary.name} y ${secondary.name} antes de que pierdan frescura, reduciendo tu huella ambiental.`;
+
+      ingList.innerHTML = `
+        <span class="px-2 py-0.5 rounded-md bg-white border border-[#EAE6DC] text-stone-800 text-[10px] font-bold">✨ ${primary.name} (${primary.quantity || 1} ${primary.unit || 'Ud'})</span>
+        <span class="px-2 py-0.5 rounded-md bg-white border border-[#EAE6DC] text-stone-800 text-[10px] font-bold">✨ ${secondary.name}</span>
+        <span class="px-2 py-0.5 rounded-md bg-white border border-[#EAE6DC] text-stone-600 text-[10px]">🌿 Aceite vegetal o mantequilla</span>
+        <span class="px-2 py-0.5 rounded-md bg-white border border-[#EAE6DC] text-stone-600 text-[10px]">🧂 Sal y pimienta al gusto</span>
+      `;
+
+      stepsList.innerHTML = `
+        <li>Picar en trozos medianos <strong>${primary.name}</strong> y saltear a fuego medio en una sartén caliente con unas gotas de aceite.</li>
+        <li>Incorporar <strong>${secondary.name}</strong> para integrar aromas y texturas durante 4 a 6 minutos.</li>
+        <li>Sazonar con especias a tu gusto y servir caliente como plato fuerte o guarnición sin desperdiciar nada.</li>
+      `;
+
+      showToast('Receta generada con tus ingredientes', '🍳');
+    };
+
+    // Initialize application on load
+    renderCategoryFilters();
+    renderModalCategoryGrid();
+    initDatabase();
+  </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
